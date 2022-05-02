@@ -2,10 +2,16 @@
   "name": "test-web",
   "version": "0.1.0",
   "private": true,
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  },
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.1.1",
     "@testing-library/user-event": "^13.5.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.1",
+    "mysql": "^2.18.1",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-router-dom": "^6.3.0",
@@ -15,8 +21,9 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "setenv": "cp .env.sample .env",
+    "test": "nodemon server",
+    "server": "nohup node server >> server.out &"
   },
   "eslintConfig": {
     "extends": [
@@ -35,5 +42,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "proxy": "http://localhost:4000/"
 }
