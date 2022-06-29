@@ -4,14 +4,13 @@ import "./style.css";
 
 class HomePage extends React.Component {
     state = {
-        id: '',
-        start: null,
+        id: 'Connecting...',
         min: '00',
         sec: '00',
     }
 
     tick() {
-        let sec = Math.floor((new Date() - new Date(this.state.start)) / 1000);
+        let sec = Math.floor((new Date() - new Date(this.start)) / 1000);
         this.setState({
             ...this.state,
             min: Math.floor(sec / 60).toString().padStart(2, '0'),
@@ -19,24 +18,25 @@ class HomePage extends React.Component {
         });
     }
 
+    startTick(start) {
+        console.log(start);
+        if(!!this.interval) clearInterval(this.interval);
+        this.start = start;
+        this.interval = setInterval(() => this.tick(), 200);
+    }
+
     componentDidMount() {
         this.socket = io();
-        this.socket.on('init', id => {
-            console.log(id);
+        this.socket.on('init', data => {
+            console.log(data);
             this.setState({
                 ...this.state,
-                id,
+                id: data.id,
             });
+            this.startTick(data.start);
         });
-        this.socket.on('start', date => {
-            console.log(this.interval);
-            if(!!this.interval) clearInterval(this.interval);
-            console.log(date);
-            this.setState({
-                ...this.state,
-                start: date,
-            });
-            this.interval = setInterval(() => this.tick(), 1000);
+        this.socket.on('start', data => {
+            this.startTick(data.start);
         });
     }
 
@@ -78,15 +78,16 @@ class HomePage extends React.Component {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            fontWeight: "bold",
                             fontSize: height * 0.05,
                             borderRadius: height * 0.05,
                         }}
                         onClick={e => {
+                            console.log("Start!!!");
                             this.socket.emit('start', id);
-                            console.log(id);
                         }}
                     >
-                        start
+                        시작
                     </div>
                 }
                 <div
@@ -105,7 +106,7 @@ class HomePage extends React.Component {
                 >
                     <div
                         style={{
-                            width: '30%', 
+                            width: width * 0.3, 
                             height: '100%',
                             display: "flex",
                             alignItems: "center",
@@ -116,7 +117,7 @@ class HomePage extends React.Component {
                     </div>
                     <div
                         style={{
-                            width: '10%', 
+                            width: width * 0.1, 
                             height: '100%',
                             display: "flex",
                             alignItems: "center",
@@ -127,7 +128,7 @@ class HomePage extends React.Component {
                     </div>
                     <div
                         style={{
-                            width: '30%', 
+                            width: width * 0.3, 
                             height: '100%',
                             display: "flex",
                             alignItems: "center",
