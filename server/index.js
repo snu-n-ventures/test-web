@@ -7,6 +7,7 @@ var io = require('socket.io')(server);
 const path = require('path');
 require('dotenv').config();
 
+var starter = "";
 var dates = [];
 const path2id = {
     "/8983": "makedelta",
@@ -29,37 +30,66 @@ io.on('connection', (socket) => {
         let id = Object.keys(path2id).includes(path) ? path2id[path] : "";
         console.log("User Connected", socket.id, id);
         socket.emit('init', {
-            id: id,
-            dates: dates,
+            id,
+            starter,
+            dates,
         });
     });
 
     socket.on('start', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
         console.log('Started from', path2id[path]);
+        starter = path2id[path];
         dates.push(new Date());
         io.emit('update', {
             id: path2id[path],
+            starter,
             dates: dates,
         });
     });
 
     socket.on('stop', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
+        if(path2id[path] !== starter && path2id[path] !== "snunventures") {
+            console.log('Stop denied from', path2id[path]);
+            return;
+        } 
         console.log('Stopped from', path2id[path]);
         dates.push(new Date());
         io.emit('update', {
             id: path2id[path],
+            starter,
+            dates: dates,
+        });
+    });
+
+    socket.on('continue', (path) => {
+        if(!Object.keys(path2id).includes(path)) return;
+        if(path2id[path] !== starter && path2id[path] !== "snunventures") {
+            console.log('Stop denied from', path2id[path]);
+            return;
+        }
+        console.log('Continue from', path2id[path]);
+        dates.push(new Date());
+        io.emit('update', {
+            id: path2id[path],
+            starter,
             dates: dates,
         });
     });
 
     socket.on('initialize', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
+        if(path2id[path] !== starter && path2id[path] !== "snunventures") {
+            console.log('Initialize denied from', path2id[path]);
+            return;
+        } 
         console.log('Initialized from', path2id[path]);
+        starter = "";
         dates = [];
         io.emit('update', {
             id: path2id[path],
+            starter,
             dates: dates,
         });
     });

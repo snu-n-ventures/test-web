@@ -12,6 +12,7 @@ class HomePage extends React.Component {
         this.dates = [];
         this.state = {
             id: 'Connecting...',
+            starter: '',
             state: INIT,
             ms: 0,
         };
@@ -22,6 +23,7 @@ class HomePage extends React.Component {
             if(this.state.state === INIT) return;
             this.setState({
                 ...this.state,
+                starter: this.starter,
                 state: INIT,
                 ms: 0,
             });
@@ -43,6 +45,7 @@ class HomePage extends React.Component {
 
         this.setState({
             ...this.state,
+            starter: this.starter,
             state,
             ms,
         });
@@ -55,10 +58,9 @@ class HomePage extends React.Component {
         this.socket.on('init', data => {
             if(!!data.id) {
                 document.addEventListener("keypress", (e) => {
-                    const { id, state } = this.state;
-                    console.log(e.code);
+                    const { state } = this.state;
                     if(e.code === 'Space') {
-                        this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
+                        this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "continue", window.location.pathname);
                     }
                 });
             }
@@ -67,9 +69,11 @@ class HomePage extends React.Component {
                 id: data.id,
             });
             this.dates = data.dates;
+            this.starter = data.starter;
         });
         this.socket.on('update', data => {
             this.dates = data.dates;
+            this.starter = data.starter;
         });
         
         this.interval = setInterval(() => this.tick(), 20);
@@ -77,7 +81,7 @@ class HomePage extends React.Component {
 
     render() {
         const { width, height } = this.props;
-        const { id, state, ms } = this.state;
+        const { id, starter, state, ms } = this.state;
 
         return (
             <div
@@ -102,7 +106,7 @@ class HomePage extends React.Component {
                             fontSize: height * 0.02,
                         }}
                     >
-                        {id}
+                        {`id: ${id} | startedBy: ${starter}`}
                     </div>
                     <div
                     className="buttons"
@@ -132,7 +136,7 @@ class HomePage extends React.Component {
                                 borderBottomLeftRadius: height * 0.05,
                             }}
                             onClick={e => {
-                                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", window.location.pathname);
+                                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "continue", window.location.pathname);
                             }}
                         >
                             {
