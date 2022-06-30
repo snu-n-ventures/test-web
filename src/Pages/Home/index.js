@@ -62,8 +62,16 @@ class HomePage extends React.Component {
         this.socket.on('update', data => {
             this.dates = data.dates;
         });
-
+        
         this.interval = setInterval(() => this.tick(), 200);
+
+        document.addEventListener("keypress", (e) => {
+            const { id, state } = this.state;
+            console.log(e.code);
+            if(e.code == 'Space') {
+                this.socket.emit(state == INIT ? "start" : state == RUNNING ? "stop" : "start", id);
+            }
+        });
     }
 
     render() {
@@ -72,7 +80,6 @@ class HomePage extends React.Component {
         const isControl = window.location.pathname == "/control";
 
         return (
-            <>
             <div
                 style={{
                     width, 
@@ -122,9 +129,7 @@ class HomePage extends React.Component {
                                 userSelect: "none",
                             }}
                             onClick={e => {
-                                this.socket.emit(
-                                    state == INIT ? "start" :
-                                    state == RUNNING ? "stop" : "start", id);
+                                this.socket.emit(state == INIT ? "start" : state == RUNNING ? "stop" : "start", id);
                             }}
                         >
                             {
@@ -202,7 +207,6 @@ class HomePage extends React.Component {
                     </div>
                 </div>
             </div>
-            </>
         );
     }
 }
