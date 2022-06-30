@@ -8,41 +8,58 @@ const path = require('path');
 require('dotenv').config();
 
 var dates = [];
+const path2id = {
+    "/8983": "makedelta",
+    "/1817": "artitoo",
+    "/5569": "hang",
+    "/3960": "dice",
+    "/2607": "pylon",
+    "/3867": "greatzipsa",
+    "/7880": "theres",
+    "/9409": "snunventures",
+};
+
 app.use(express.json());
 app.use(express.static("build"));
 app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '..', 'build', 'index.html'));
 });
 io.on('connection', (socket) => {
-    console.log('User Connected', socket.id);
-    socket.emit('init', {
-        id: socket.id,
-        dates: dates,
-    });
-
-    socket.on('start', (id) => {
-        console.log('Started from', id);
-        dates.push(new Date());
-        io.emit('update', {
-            id: socket.id,
+    socket.on('init', (path) => {
+        let id = Object.keys(path2id).includes(path) ? path2id[path] : "";
+        console.log("User Connected", socket.id, id);
+        socket.emit('init', {
+            id: id,
             dates: dates,
         });
     });
 
-    socket.on('stop', (id) => {
-        console.log('Stopped from', id);
+    socket.on('start', (path) => {
+        if(!Object.keys(path2id).includes(path)) return;
+        console.log('Started from', path2id[path]);
         dates.push(new Date());
         io.emit('update', {
-            id: socket.id,
+            id: path2id[path],
             dates: dates,
         });
     });
 
-    socket.on('initialize', (id) => {
-        console.log('Initialized from', id);
+    socket.on('stop', (path) => {
+        if(!Object.keys(path2id).includes(path)) return;
+        console.log('Stopped from', path2id[path]);
+        dates.push(new Date());
+        io.emit('update', {
+            id: path2id[path],
+            dates: dates,
+        });
+    });
+
+    socket.on('initialize', (path) => {
+        if(!Object.keys(path2id).includes(path)) return;
+        console.log('Initialized from', path2id[path]);
         dates = [];
         io.emit('update', {
-            id: socket.id,
+            id: path2id[path],
             dates: dates,
         });
     });

@@ -9,7 +9,6 @@ const STOPPED = 2;
 class HomePage extends React.Component {
     constructor(props) {
         super(props);
-        this.isControl = window.location.pathname === "/control";
         this.dates = [];
         this.state = {
             id: 'Connecting...',
@@ -51,7 +50,18 @@ class HomePage extends React.Component {
 
     componentDidMount() {
         this.socket = io();
+        this.socket.emit('init', window.location.pathname);
+
         this.socket.on('init', data => {
+            if(!!data.id) {
+                document.addEventListener("keypress", (e) => {
+                    const { id, state } = this.state;
+                    console.log(e.code);
+                    if(e.code === 'Space') {
+                        this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
+                    }
+                });
+            }
             this.setState({
                 ...this.state,
                 id: data.id,
@@ -63,16 +73,6 @@ class HomePage extends React.Component {
         });
         
         this.interval = setInterval(() => this.tick(), 20);
-
-        if(this.isControl) {
-            document.addEventListener("keypress", (e) => {
-                const { id, state } = this.state;
-                console.log(e.code);
-                if(e.code === 'Space') {
-                    this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
-                }
-            });
-        }
     }
 
     render() {
@@ -91,7 +91,7 @@ class HomePage extends React.Component {
                 }}
             >
                 {
-                    this.isControl && 
+                    !!id && 
                     <>
                     <div
                         style={{
@@ -132,7 +132,7 @@ class HomePage extends React.Component {
                                 borderBottomLeftRadius: height * 0.05,
                             }}
                             onClick={e => {
-                                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
+                                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", window.location.pathname);
                             }}
                         >
                             {
@@ -152,7 +152,7 @@ class HomePage extends React.Component {
                                 borderBottomRightRadius: height * 0.05,
                             }}
                             onClick={e => {
-                                this.socket.emit('initialize', id);
+                                this.socket.emit('initialize', window.location.pathname);
                             }}
                         >
                             초기화
