@@ -9,6 +9,7 @@ const STOPPED = 2;
 class HomePage extends React.Component {
     constructor(props) {
         super(props);
+        this.isControl = window.location.pathname === "/control";
         this.dates = [];
         this.state = {
             id: 'Connecting...',
@@ -67,19 +68,20 @@ class HomePage extends React.Component {
         
         this.interval = setInterval(() => this.tick(), 200);
 
-        document.addEventListener("keypress", (e) => {
-            const { id, state } = this.state;
-            console.log(e.code);
-            if(e.code === 'Space') {
-                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
-            }
-        });
+        if(this.isControl) {
+            document.addEventListener("keypress", (e) => {
+                const { id, state } = this.state;
+                console.log(e.code);
+                if(e.code === 'Space') {
+                    this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
+                }
+            });
+        }
     }
 
     render() {
         const { width, height } = this.props;
         const { id, state, min, sec } = this.state;
-        const isControl = window.location.pathname === "/control";
 
         return (
             <div
@@ -102,7 +104,7 @@ class HomePage extends React.Component {
                     {id}
                 </div>
                 {
-                    isControl && 
+                    this.isControl && 
                     <div
                     style={{
                         position: "absolute",
