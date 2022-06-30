@@ -29,8 +29,8 @@ class App extends React.Component {
         return (
             <BrowserRouter>
                 <Routes>
-                    <Route path="/start" element={<HomePage width={width} height={height} isStart={true}/>} />
-                    <Route path="" element={<HomePage width={width} height={height} isStart={false}/>} />
+                    <Route path="/control" element={<HomePage width={width} height={height}/>} />
+                    <Route path="" element={<HomePage width={width} height={height}/>} />
                 </Routes>
             </BrowserRouter>
         );

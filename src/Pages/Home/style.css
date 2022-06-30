@@ -1,9 +1,4 @@
-.start {
-    background: #3f3;
-}
-
-
-.start:hover {
-    background: #bfb;
+.button:hover {
+    opacity: 0.7;
     cursor: pointer;
 }

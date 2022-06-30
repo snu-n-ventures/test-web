@@ -7,7 +7,7 @@ var io = require('socket.io')(server);
 const path = require('path');
 require('dotenv').config();
 
-var start = null;
+var dates = [];
 app.use(express.json());
 app.use(express.static("build"));
 app.get('*', (req, res) => {
@@ -17,15 +17,33 @@ io.on('connection', (socket) => {
     console.log('User Connected', socket.id);
     socket.emit('init', {
         id: socket.id,
-        start: start,
+        dates: dates,
     });
 
     socket.on('start', (id) => {
         console.log('Started from', id);
-        start = new Date();
-        io.emit('start', {
+        dates.push(new Date());
+        io.emit('update', {
             id: socket.id,
-            start: start,
+            dates: dates,
+        });
+    });
+
+    socket.on('stop', (id) => {
+        console.log('Stopped from', id);
+        dates.push(new Date());
+        io.emit('update', {
+            id: socket.id,
+            dates: dates,
+        });
+    });
+
+    socket.on('initialize', (id) => {
+        console.log('Initialized from', id);
+        dates = [];
+        io.emit('update', {
+            id: socket.id,
+            dates: dates,
         });
     });
 

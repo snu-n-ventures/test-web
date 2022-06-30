@@ -2,47 +2,74 @@ import React from "react";
 import { io } from "socket.io-client";
 import "./style.css";
 
+const INIT = 0;
+const RUNNING = 1;
+const STOPPED = 2;
+
 class HomePage extends React.Component {
+    dates = []
+
     state = {
         id: 'Connecting...',
+        state: INIT,
         min: '00',
         sec: '00',
     }
 
-    tick() {
-        let sec = Math.floor((new Date() - new Date(this.start)) / 1000);
+    tick = () => {
+        if(this.dates.length == 0) {
+            this.setState({
+                ...this.state,
+                state: INIT,
+                min: '00',
+                sec: '00',
+            });
+            return;
+        }
+
+        let ms = 0;
+        for(let i=1; i<this.dates.length; i+=2) {
+            let start = this.dates[i-1];
+            let stop = this.dates[i];
+            ms += new Date(stop) - new Date(start);
+        }
+
+        let state = (this.dates.length % 2 == 1) ? RUNNING : STOPPED;
+        if(state == RUNNING) {
+            let start = this.dates[this.dates.length - 1];
+            ms += new Date() - new Date(start);
+        }
+        let min = Math.floor(ms / 60000).toString().padStart(2, '0');
+        let sec = (Math.floor(ms / 1000) % 60).toString().padStart(2, '0');
+
         this.setState({
             ...this.state,
-            min: Math.floor(sec / 60).toString().padStart(2, '0'),
-            sec: (sec % 60).toString().padStart(2, '0'),
+            state,
+            min,
+            sec,
         });
-    }
-
-    startTick(start) {
-        console.log(start);
-        if(!!this.interval) clearInterval(this.interval);
-        this.start = start;
-        this.interval = setInterval(() => this.tick(), 200);
     }
 
     componentDidMount() {
         this.socket = io();
         this.socket.on('init', data => {
-            console.log(data);
             this.setState({
                 ...this.state,
                 id: data.id,
             });
-            this.startTick(data.start);
+            this.dates = data.dates;
         });
-        this.socket.on('start', data => {
-            this.startTick(data.start);
+        this.socket.on('update', data => {
+            this.dates = data.dates;
         });
+
+        this.interval = setInterval(() => this.tick(), 200);
     }
 
     render() {
-        const { width, height, isStart } = this.props;
-        const { id, min, sec } = this.state;
+        const { width, height } = this.props;
+        const { id, state, min, sec } = this.state;
+        const isControl = window.location.pathname == "/control";
 
         return (
             <>
@@ -66,28 +93,64 @@ class HomePage extends React.Component {
                     {id}
                 </div>
                 {
-                    isStart && 
+                    isControl && 
                     <div
-                        className="start"
-                        style={{
-                            position: "absolute",
-                            left: width * 0.1,
-                            top: height * 0.05,
-                            width: width * 0.8,
-                            height: height * 0.1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontWeight: "bold",
-                            fontSize: height * 0.05,
-                            borderRadius: height * 0.05,
-                        }}
-                        onClick={e => {
-                            console.log("Start!!!");
-                            this.socket.emit('start', id);
-                        }}
+                    style={{
+                        position: "absolute",
+                        left: width * 0.1,
+                        top: height * 0.05,
+                        width: width * 0.8,
+                        height: height * 0.1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: "bold",
+                        fontSize: height * 0.05,
+                    }}
                     >
-                        시작
+                        <div
+                            className="button"
+                            style={{
+                                width: width * 0.4,
+                                height: height * 0.1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "#3f3",
+                                borderTopLeftRadius: height * 0.05,
+                                borderBottomLeftRadius: height * 0.05,
+                                userSelect: "none",
+                            }}
+                            onClick={e => {
+                                this.socket.emit(
+                                    state == INIT ? "start" :
+                                    state == RUNNING ? "stop" : "start", id);
+                            }}
+                        >
+                            {
+                                state == INIT ? "시작" :
+                                state == RUNNING ? "중지" : "계속"
+                            }
+                        </div>
+                        <div
+                            className="button"
+                            style={{
+                                width: width * 0.4,
+                                height: height * 0.1,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: "#aaa",
+                                borderTopRightRadius: height * 0.05,
+                                borderBottomRightRadius: height * 0.05,
+                                userSelect: "none",
+                            }}
+                            onClick={e => {
+                                this.socket.emit('initialize', id);
+                            }}
+                        >
+                            초기화
+                        </div>
                     </div>
                 }
                 <div
