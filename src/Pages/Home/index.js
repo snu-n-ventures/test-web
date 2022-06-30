@@ -7,17 +7,19 @@ const RUNNING = 1;
 const STOPPED = 2;
 
 class HomePage extends React.Component {
-    dates = []
-
-    state = {
-        id: 'Connecting...',
-        state: INIT,
-        min: '00',
-        sec: '00',
+    constructor(props) {
+        super(props);
+        this.dates = [];
+        this.state = {
+            id: 'Connecting...',
+            state: INIT,
+            min: '00',
+            sec: '00',
+        };
     }
 
     tick = () => {
-        if(this.dates.length == 0) {
+        if(this.dates.length === 0) {
             this.setState({
                 ...this.state,
                 state: INIT,
@@ -34,8 +36,8 @@ class HomePage extends React.Component {
             ms += new Date(stop) - new Date(start);
         }
 
-        let state = (this.dates.length % 2 == 1) ? RUNNING : STOPPED;
-        if(state == RUNNING) {
+        let state = (this.dates.length % 2 === 1) ? RUNNING : STOPPED;
+        if(state === RUNNING) {
             let start = this.dates[this.dates.length - 1];
             ms += new Date() - new Date(start);
         }
@@ -68,8 +70,8 @@ class HomePage extends React.Component {
         document.addEventListener("keypress", (e) => {
             const { id, state } = this.state;
             console.log(e.code);
-            if(e.code == 'Space') {
-                this.socket.emit(state == INIT ? "start" : state == RUNNING ? "stop" : "start", id);
+            if(e.code === 'Space') {
+                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
             }
         });
     }
@@ -77,7 +79,7 @@ class HomePage extends React.Component {
     render() {
         const { width, height } = this.props;
         const { id, state, min, sec } = this.state;
-        const isControl = window.location.pathname == "/control";
+        const isControl = window.location.pathname === "/control";
 
         return (
             <div
@@ -129,12 +131,12 @@ class HomePage extends React.Component {
                                 userSelect: "none",
                             }}
                             onClick={e => {
-                                this.socket.emit(state == INIT ? "start" : state == RUNNING ? "stop" : "start", id);
+                                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
                             }}
                         >
                             {
-                                state == INIT ? "시작" :
-                                state == RUNNING ? "중지" : "계속"
+                                state === INIT ? "시작" :
+                                state === RUNNING ? "중지" : "계속"
                             }
                         </div>
                         <div
