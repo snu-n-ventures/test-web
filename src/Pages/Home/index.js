@@ -5,7 +5,6 @@ import "./style.css";
 const INIT = 0;
 const RUNNING = 1;
 const STOPPED = 2;
-const INITIALIZING = 3;
 
 class HomePage extends React.Component {
     constructor(props) {
@@ -86,23 +85,27 @@ class HomePage extends React.Component {
                     width, 
                     height,
                     display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     background: "#000",
                 }}
             >
-                <div
-                    style={{
-                        position: "absolute",
-                        left: 0,
-                        bottom: 0,
-                        color: "#666",
-                        fontSize: height * 0.02,
-                    }}
-                >
-                    {id}
-                </div>
                 {
                     this.isControl && 
+                    <>
                     <div
+                        style={{
+                            position: "absolute",
+                            left: 0,
+                            bottom: 0,
+                            color: "#666",
+                            fontSize: height * 0.02,
+                        }}
+                    >
+                        {id}
+                    </div>
+                    <div
+                    className="buttons"
                     style={{
                         position: "absolute",
                         left: width * 0.1,
@@ -112,8 +115,8 @@ class HomePage extends React.Component {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontWeight: "bold",
-                        fontSize: height * 0.05,
+                        fontSize: width * 2 > height ? height * 0.04 : width * 0.08,
+                        borderRadius: height * 0.05,
                     }}
                     >
                         <div
@@ -155,19 +158,19 @@ class HomePage extends React.Component {
                             초기화
                         </div>
                     </div>
+                    </>
                 }
                 <div
+                    className="clock"
                     style={{
-                        position: "absolute",
-                        left: 0,
-                        top: height * 0.25,
                         width: width, 
-                        height: height * 0.5,
+                        height: height,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: width > height ? height * 0.3 : width * 0.3,
-                        color: "#fc7",
+                        fontSize: width > height ? height * 0.4 : width * 0.4,
+                        color: "#fff",
+                        textShadow: "0 0 5px #fff, 0 0 15px #fc7",
                     }}
                 >
                     <div
@@ -183,11 +186,12 @@ class HomePage extends React.Component {
                     </div>
                     <div
                         style={{
-                            width: width * 0.1, 
+                            width: width * 0.1,
                             height: '100%',
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            opacity: 1 - 0.5 * (ms % 1000) / 1000,
                         }}
                     >
                         :

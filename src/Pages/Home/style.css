@@ -1,9 +1,13 @@
+.clock {
+    font-family: digital-7;
+}
+
 .button {
     user-select: none;
     transition: opacity 0.1s, background 0.5s;
 }
 
 .button:hover {
-    opacity: 0.95;
+    opacity: 0.9;
     cursor: pointer;
 }
