@@ -28,7 +28,7 @@ app.get('*', (req, res) => {
 io.on('connection', (socket) => {
     socket.on('init', (path) => {
         let id = Object.keys(path2id).includes(path) ? path2id[path] : "";
-        console.log("User Connected", socket.id, id);
+        console.log(new Date().toString(), "User Connected", socket.id, id);
         socket.emit('init', {
             id,
             starter,
@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
 
     socket.on('start', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
-        console.log('Started from', path2id[path]);
+        console.log(new Date().toString(), 'Started from', path2id[path]);
         starter = path2id[path];
         dates.push(new Date());
         io.emit('update', {
@@ -51,10 +51,10 @@ io.on('connection', (socket) => {
     socket.on('stop', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
         if(path2id[path] !== starter && path2id[path] !== "snunventures") {
-            console.log('Stop denied from', path2id[path]);
+            console.log(new Date().toString(), 'Stop denied from', path2id[path]);
             return;
         } 
-        console.log('Stopped from', path2id[path]);
+        console.log(new Date().toString(), 'Stopped from', path2id[path]);
         dates.push(new Date());
         io.emit('update', {
             id: path2id[path],
@@ -66,10 +66,10 @@ io.on('connection', (socket) => {
     socket.on('continue', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
         if(path2id[path] !== starter && path2id[path] !== "snunventures") {
-            console.log('Stop denied from', path2id[path]);
+            console.log(new Date().toString(), 'Stop denied from', path2id[path]);
             return;
         }
-        console.log('Continue from', path2id[path]);
+        console.log(new Date().toString(), 'Continue from', path2id[path]);
         dates.push(new Date());
         io.emit('update', {
             id: path2id[path],
@@ -81,10 +81,10 @@ io.on('connection', (socket) => {
     socket.on('initialize', (path) => {
         if(!Object.keys(path2id).includes(path)) return;
         if(path2id[path] !== starter && path2id[path] !== "snunventures") {
-            console.log('Initialize denied from', path2id[path]);
+            console.log(new Date().toString(), 'Initialize denied from', path2id[path]);
             return;
         } 
-        console.log('Initialized from', path2id[path]);
+        console.log(new Date().toString(), 'Initialized from', path2id[path]);
         starter = "";
         dates = [];
         io.emit('update', {
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('User Disconnected', socket.id);
+        console.log(new Date().toString(), 'User Disconnected', socket.id);
     });
 });
 
