@@ -11,7 +11,7 @@ class HomePage extends React.Component {
         super(props);
         this.dates = [];
         this.state = {
-            id: 'Connecting...',
+            id: '',
             starter: '',
             state: INIT,
             ms: 0,
