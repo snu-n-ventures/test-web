@@ -15,6 +15,7 @@ class HomePage extends React.Component {
             starter: '',
             state: INIT,
             ms: 0,
+            darkmode: true,
         };
     }
 
@@ -81,7 +82,7 @@ class HomePage extends React.Component {
 
     render() {
         const { width, height } = this.props;
-        const { id, starter, state, ms } = this.state;
+        const { id, starter, state, ms, darkmode } = this.state;
 
         return (
             <div
@@ -91,7 +92,8 @@ class HomePage extends React.Component {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "#000",
+                    background: darkmode ? "#000" : '#fff',
+                    transition: "background 0.5s",
                 }}
             >
                 {
@@ -101,19 +103,19 @@ class HomePage extends React.Component {
                         style={{
                             position: "absolute",
                             left: 0,
-                            bottom: 0,
-                            color: "#666",
+                            top: 0,
+                            color: "#999",
                             fontSize: height * 0.02,
                         }}
                     >
-                        {`id: ${id} | startedBy: ${starter}`}
+                        {`ID: ${id} | Started By: ${starter}`}
                     </div>
                     <div
                     className="buttons"
                     style={{
                         position: "absolute",
                         left: width * 0.1,
-                        top: height * 0.05,
+                        bottom: height * 0.05,
                         width: width * 0.8,
                         height: height * 0.1,
                         display: "flex",
@@ -172,9 +174,12 @@ class HomePage extends React.Component {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: width > height ? height * 0.4 : width * 0.4,
-                        color: "#fff",
-                        textShadow: "0 0 5px #fff, 0 0 15px #fc7",
+                        fontSize: width > height ? height * 0.45 : width * 0.45,
+                        color: darkmode ? "#fff" : "#222",
+                        textShadow: darkmode ? 
+                        "0 0 7px #ddd, 0 0 25px #fc3" : 
+                        "5px 15px 20px #333",
+                        transition: "color 3s, text-shadow 3s",
                     }}
                 >
                     <div
@@ -195,7 +200,12 @@ class HomePage extends React.Component {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            opacity: 1 - 0.5 * (ms % 1000) / 1000,
+                            opacity: 1 - 0.7 * (ms % 1000) / 1000,
+                        }}
+                        onClick={e => {
+                            this.setState({
+                                darkmode: !darkmode,
+                            });
                         }}
                     >
                         :
