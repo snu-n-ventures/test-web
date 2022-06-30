@@ -5,6 +5,7 @@ import "./style.css";
 const INIT = 0;
 const RUNNING = 1;
 const STOPPED = 2;
+const INITIALIZING = 3;
 
 class HomePage extends React.Component {
     constructor(props) {
@@ -14,18 +15,17 @@ class HomePage extends React.Component {
         this.state = {
             id: 'Connecting...',
             state: INIT,
-            min: '00',
-            sec: '00',
+            ms: 0,
         };
     }
 
     tick = () => {
         if(this.dates.length === 0) {
+            if(this.state.state === INIT) return;
             this.setState({
                 ...this.state,
                 state: INIT,
-                min: '00',
-                sec: '00',
+                ms: 0,
             });
             return;
         }
@@ -42,14 +42,11 @@ class HomePage extends React.Component {
             let start = this.dates[this.dates.length - 1];
             ms += new Date() - new Date(start);
         }
-        let min = Math.floor(ms / 60000).toString().padStart(2, '0');
-        let sec = (Math.floor(ms / 1000) % 60).toString().padStart(2, '0');
 
         this.setState({
             ...this.state,
             state,
-            min,
-            sec,
+            ms,
         });
     }
 
@@ -66,7 +63,7 @@ class HomePage extends React.Component {
             this.dates = data.dates;
         });
         
-        this.interval = setInterval(() => this.tick(), 200);
+        this.interval = setInterval(() => this.tick(), 20);
 
         if(this.isControl) {
             document.addEventListener("keypress", (e) => {
@@ -81,7 +78,7 @@ class HomePage extends React.Component {
 
     render() {
         const { width, height } = this.props;
-        const { id, state, min, sec } = this.state;
+        const { id, state, ms } = this.state;
 
         return (
             <div
@@ -127,18 +124,16 @@ class HomePage extends React.Component {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                background: "#3f3",
+                                background: state === INIT ? "#3f3" : state === RUNNING ? "#f33" : "#3f3",
                                 borderTopLeftRadius: height * 0.05,
                                 borderBottomLeftRadius: height * 0.05,
-                                userSelect: "none",
                             }}
                             onClick={e => {
                                 this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "start", id);
                             }}
                         >
                             {
-                                state === INIT ? "시작" :
-                                state === RUNNING ? "중지" : "계속"
+                                state === INIT ? "시작" : state === RUNNING ? "중지" : "계속"
                             }
                         </div>
                         <div
@@ -149,10 +144,9 @@ class HomePage extends React.Component {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                background: "#aaa",
+                                background: "#ccc",
                                 borderTopRightRadius: height * 0.05,
                                 borderBottomRightRadius: height * 0.05,
-                                userSelect: "none",
                             }}
                             onClick={e => {
                                 this.socket.emit('initialize', id);
@@ -185,7 +179,7 @@ class HomePage extends React.Component {
                             justifyContent: "flex-end",
                         }}
                     >
-                        {min}
+                        {Math.floor(ms / 60000).toString().padStart(2, '0')}
                     </div>
                     <div
                         style={{
@@ -207,7 +201,7 @@ class HomePage extends React.Component {
                             justifyContent: "flex-start",
                         }}
                     >
-                        {sec}
+                        {(Math.floor(ms / 1000) % 60).toString().padStart(2, '0')}
                     </div>
                 </div>
             </div>
