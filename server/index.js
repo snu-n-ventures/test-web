@@ -10,14 +10,7 @@ require('dotenv').config();
 var starter = "";
 var dates = [];
 const path2id = {
-    "/8983": "makedelta",
-    "/1817": "artitoo",
-    "/5569": "hang",
-    "/3960": "dice",
-    "/2607": "pylon",
-    "/3867": "greatzipsa",
-    "/7880": "theres",
-    "/9409": "snunventures",
+    "/admin": "SNAAC_ADMIN",
 };
 
 app.use(express.json());
