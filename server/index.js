@@ -9,6 +9,7 @@ require('dotenv').config();
 
 var starter = "";
 var dates = [];
+var tms = 0;
 const path2id = {
     "/admin": "SNAAC_ADMIN",
 };
@@ -26,22 +27,27 @@ io.on('connection', (socket) => {
             id,
             starter,
             dates,
+            tms,
         });
     });
 
-    socket.on('start', (path) => {
+    socket.on('start', (data) => {
+        const { min, sec, path } = data;
         if(!Object.keys(path2id).includes(path)) return;
-        console.log(new Date().toString(), 'Started from', path2id[path]);
+        console.log(new Date().toString(), 'Started from', path2id[path], min, sec);
         starter = path2id[path];
-        dates.push(new Date());
+        dates = [new Date()];
+        tms = 1000 * (min * 60 + sec);
         io.emit('update', {
             id: path2id[path],
             starter,
             dates: dates,
+            tms,
         });
     });
 
-    socket.on('stop', (path) => {
+    socket.on('stop', (data) => {
+        const { path } = data;
         if(!Object.keys(path2id).includes(path)) return;
         if(path2id[path] !== starter && path2id[path] !== "snunventures") {
             console.log(new Date().toString(), 'Stop denied from', path2id[path]);
@@ -53,10 +59,12 @@ io.on('connection', (socket) => {
             id: path2id[path],
             starter,
             dates: dates,
+            tms,
         });
     });
 
-    socket.on('continue', (path) => {
+    socket.on('continue', (data) => {
+        const { path } = data;
         if(!Object.keys(path2id).includes(path)) return;
         if(path2id[path] !== starter && path2id[path] !== "snunventures") {
             console.log(new Date().toString(), 'Stop denied from', path2id[path]);
@@ -68,6 +76,7 @@ io.on('connection', (socket) => {
             id: path2id[path],
             starter,
             dates: dates,
+            tms,
         });
     });
 
@@ -84,6 +93,7 @@ io.on('connection', (socket) => {
             id: path2id[path],
             starter,
             dates: dates,
+            tms,
         });
     });
 

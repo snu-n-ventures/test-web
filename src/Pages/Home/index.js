@@ -5,21 +5,29 @@ import "./style.css";
 const INIT = 0;
 const RUNNING = 1;
 const STOPPED = 2;
+const SETTING = 3;
 
 class HomePage extends React.Component {
     constructor(props) {
         super(props);
         this.dates = [];
+        this.tms = 0;
         this.state = {
             id: '',
             starter: '',
             state: INIT,
             ms: 0,
-            darkmode: true,
+            isSettingMin: false,
+            isSettingSec: false,
+            min: null,
+            sec: null,
         };
     }
 
     tick = () => {
+        if(this.state.state === SETTING) {
+            return;
+        }
         if(this.dates.length === 0) {
             if(this.state.state === INIT) return;
             this.setState({
@@ -44,11 +52,13 @@ class HomePage extends React.Component {
             ms += new Date() - new Date(start);
         }
 
+        const time = this.tms === 0 ? ms : this.tms - ms;
+
         this.setState({
             ...this.state,
             starter: this.starter,
             state,
-            ms,
+            ms: time,
         });
     }
 
@@ -57,24 +67,18 @@ class HomePage extends React.Component {
         this.socket.emit('init', window.location.pathname);
 
         this.socket.on('init', data => {
-            if(!!data.id) {
-                document.addEventListener("keypress", (e) => {
-                    const { state } = this.state;
-                    if(e.code === 'Space') {
-                        this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "continue", window.location.pathname);
-                    }
-                });
-            }
             this.setState({
                 ...this.state,
                 id: data.id,
             });
             this.dates = data.dates;
             this.starter = data.starter;
+            this.tms = data.tms;
         });
         this.socket.on('update', data => {
             this.dates = data.dates;
             this.starter = data.starter;
+            this.tms = data.tms;
         });
         
         this.interval = setInterval(() => this.tick(), 20);
@@ -82,8 +86,13 @@ class HomePage extends React.Component {
 
     render() {
         const { width, height } = this.props;
-        const { id, starter, state, ms, darkmode } = this.state;
+        const { id, starter, state, ms, isSettingMin, isSettingSec, min, sec } = this.state;
 
+        const minNum = state === SETTING ? (min || 0) : Math.floor(Math.max(ms, 0) / 60000);
+        const secNum = state === SETTING ? (sec || 0) : Math.floor(Math.max(ms, 0) / 1000) % 60;
+        const fontSize = width > height ? height * 0.45 : width * 0.45;
+        const borderWidth = 2;
+        
         return (
             <div
                 style={{
@@ -92,7 +101,7 @@ class HomePage extends React.Component {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: darkmode ? "#000" : '#fff',
+                    background: '#fff',
                     transition: "background 0.5s",
                 }}
             >
@@ -111,19 +120,19 @@ class HomePage extends React.Component {
                         {`ID: ${id} | Started By: ${starter}`}
                     </div>
                     <div
-                    className="buttons"
-                    style={{
-                        position: "absolute",
-                        left: width * 0.1,
-                        bottom: height * 0.05,
-                        width: width * 0.8,
-                        height: height * 0.1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: width * 2 > height ? height * 0.04 : width * 0.08,
-                        borderRadius: height * 0.05,
-                    }}
+                        className="buttons"
+                        style={{
+                            position: "absolute",
+                            left: width * 0.1,
+                            bottom: height * 0.05,
+                            width: width * 0.8,
+                            height: height * 0.1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: width * 2 > height ? height * 0.04 : width * 0.08,
+                            borderRadius: height * 0.05,
+                        }}
                     >
                         <div
                             className="button"
@@ -138,11 +147,23 @@ class HomePage extends React.Component {
                                 borderBottomLeftRadius: height * 0.05,
                             }}
                             onClick={e => {
-                                this.socket.emit(state === INIT ? "start" : state === RUNNING ? "stop" : "continue", window.location.pathname);
+                                this.socket.emit((state === SETTING || state === INIT) ? "start" : state === RUNNING ? "stop" : "continue", {
+                                    min: min,
+                                    sec: sec,
+                                    path: window.location.pathname
+                                });
+                                this.setState({
+                                    ...this.state,
+                                    state: RUNNING,
+                                    isSettingMin: false,
+                                    isSettingSec: false,
+                                    min: null,
+                                    sec: null,
+                                });
                             }}
                         >
                             {
-                                state === INIT ? "시작" : state === RUNNING ? "중지" : "계속"
+                                (state === SETTING || state === INIT) ? "시작" : state === RUNNING ? "중지" : "계속"
                             }
                         </div>
                         <div
@@ -158,10 +179,24 @@ class HomePage extends React.Component {
                                 borderBottomRightRadius: height * 0.05,
                             }}
                             onClick={e => {
-                                this.socket.emit('initialize', window.location.pathname);
+                                if(this.state.state === SETTING) {
+                                    this.setState({
+                                        ...this.state,
+                                        state: INIT,
+                                        isSettingMin: false,
+                                        isSettingSec: false,
+                                        min: null,
+                                        sec: null,
+                                    });
+                                }
+                                else {
+                                    this.socket.emit('initialize', window.location.pathname);
+                                }
                             }}
                         >
-                            초기화
+                            {
+                                (state === SETTING) ? "취소" : "초기화"
+                            }
                         </div>
                     </div>
                     </>
@@ -170,33 +205,70 @@ class HomePage extends React.Component {
                     className="clock"
                     style={{
                         width: width, 
-                        height: height,
+                        height: fontSize,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: width > height ? height * 0.45 : width * 0.45,
-                        color: darkmode ? "#fff" : "#222",
-                        textShadow: darkmode ? 
-                        "0 0 7px #ddd, 0 0 25px #fc3" : 
-                        "5px 15px 20px #333",
+                        fontSize: fontSize,
+                        color: "#222",
+                        textShadow: "5px 15px 20px #333",
                         transition: "color 3s, text-shadow 3s",
                     }}
                 >
-                    <div
-                        style={{
-                            width: width * 0.3, 
-                            height: '100%',
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                        }}
-                    >
-                        {Math.floor(ms / 60000).toString().padStart(2, '0')}
-                    </div>
+                    {
+                        isSettingMin ? 
+                        <input
+                            type="number"
+                            style={{
+                                width: fontSize - borderWidth, 
+                                height: fontSize - borderWidth, 
+                                display: "flex",
+                                alignItems: "center",
+                                borderRadius: width * 0.01,
+                                justifyContent: "flex-end",
+                                borderWidth: borderWidth,
+                            }}
+                            onChange={(e) => {
+                                if(e.target.value === "") {
+                                    this.setState({
+                                        ...this.state,
+                                        min: null,
+                                    });
+                                    return;
+                                }
+                                this.setState({
+                                    ...this.state,
+                                    min: Math.min(Math.max(e.target.value, 0), 99),
+                                });
+                            }}
+                            value={min}
+                        /> :
+                        <div
+                            style={{
+                                width: fontSize, 
+                                height: fontSize, 
+                                display: "flex",
+                                alignItems: "center",
+                                borderRadius: width * 0.01,
+                                justifyContent: "flex-end",
+                            }}
+                            onClick={e => {
+                                e.preventDefault();
+                                this.setState({
+                                    ...this.state,
+                                    isSettingMin: true,
+                                    isSettingSec: false,
+                                    state: SETTING,
+                                });
+                            }}
+                        >
+                            {minNum.toString().padStart(2, '0')}
+                        </div>
+                    }
                     <div
                         style={{
                             width: width * 0.1,
-                            height: '100%',
+                            height: width * 0.3,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -204,23 +276,63 @@ class HomePage extends React.Component {
                         }}
                         onClick={e => {
                             this.setState({
-                                darkmode: !darkmode,
+                                ...this.state,
+                                isSettingMin: false,
+                                isSettingSec: false,
                             });
                         }}
                     >
                         :
                     </div>
-                    <div
-                        style={{
-                            width: width * 0.3, 
-                            height: '100%',
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "flex-start",
-                        }}
-                    >
-                        {(Math.floor(ms / 1000) % 60).toString().padStart(2, '0')}
-                    </div>
+                    {
+                        isSettingSec?
+                        <input
+                            type="number"
+                            style={{
+                                width: fontSize - borderWidth, 
+                                height: fontSize - borderWidth, 
+                                display: "flex",
+                                alignItems: "center",
+                                borderRadius: width * 0.01,
+                                justifyContent: "flex-start",
+                                borderWidth: borderWidth,
+                            }}
+                            onChange={(e) => {
+                                if(e.target.value === "") {
+                                    this.setState({
+                                        ...this.state,
+                                        sec: null,
+                                    });
+                                    return;
+                                }
+                                this.setState({
+                                    ...this.state,
+                                    sec: Math.min(Math.max(e.target.value, 0), 59),
+                                });
+                            }}
+                            value={sec}
+                        /> :
+                        <div
+                            style={{
+                                width: fontSize, 
+                                height: fontSize, 
+                                display: "flex",
+                                alignItems: "center",
+                                borderRadius: width * 0.01,
+                                justifyContent: "flex-start",
+                            }}
+                            onClick={e => {
+                                this.setState({
+                                    ...this.state,
+                                    isSettingSec: true,
+                                    isSettingMin: false,
+                                    state: SETTING,
+                                });
+                            }}
+                        >
+                            {secNum.toString().padStart(2, '0')}
+                        </div>
+                    }
                 </div>
             </div>
         );

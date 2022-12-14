@@ -11,3 +11,10 @@
     opacity: 0.9;
     cursor: pointer;
 }
+
+input {
+    padding: 0 !important;
+    font-size: inherit;
+    font-family: inherit;
+    margin: 0 !important;
+}
