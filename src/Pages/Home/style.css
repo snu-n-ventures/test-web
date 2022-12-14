@@ -17,4 +17,7 @@ input {
     font-size: inherit;
     font-family: inherit;
     margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

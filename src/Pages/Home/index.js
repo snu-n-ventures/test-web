@@ -253,7 +253,9 @@ class HomePage extends React.Component {
                                 justifyContent: "flex-end",
                             }}
                             onClick={e => {
-                                e.preventDefault();
+                                if(!id) {
+                                    return;
+                                }
                                 this.setState({
                                     ...this.state,
                                     isSettingMin: true,
@@ -275,6 +277,9 @@ class HomePage extends React.Component {
                             opacity: 1 - 0.7 * (ms % 1000) / 1000,
                         }}
                         onClick={e => {
+                            if(!id) {
+                                return;
+                            }
                             this.setState({
                                 ...this.state,
                                 isSettingMin: false,
@@ -322,6 +327,9 @@ class HomePage extends React.Component {
                                 justifyContent: "flex-start",
                             }}
                             onClick={e => {
+                                if(!id) {
+                                    return;
+                                }
                                 this.setState({
                                     ...this.state,
                                     isSettingSec: true,
